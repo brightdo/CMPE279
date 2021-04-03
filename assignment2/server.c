@@ -19,9 +19,7 @@ int main(int argc, char const *argv[])
     
     printf("process running\n");
     
-    if (argc == 1) {
-
-    
+    if (argc == 1) { //if no params, run as parent
         printf("PARENT PROCESS STARTED\n");
         printf("execve=0x%p\n", execve);
 
@@ -39,41 +37,31 @@ int main(int argc, char const *argv[])
             perror("setsockopt");
             exit(EXIT_FAILURE);
         }
-        
 
-	
         if (fork() == 0) {
             // Child
-            // Exact copy of parent, including address space
-            // want to call exec to randomize address space again
+            dup2(server_fd,2); // duplicate file handle so it can be accessed later
 
-            dup2(server_fd,2);
-
-            char *const new_argv[] = {(char *) argv[0], "c"};
-            char *const envp[] = {NULL};
-            if(execve(argv[0], new_argv, envp) < 0 ){
-            perror("execve failed\n" );
+            char *const new_argv[] = {(char *) argv[0], "c"}; // new program argv
+            char *const envp[] = {NULL}; // new program envp
+            if(execve(argv[0], new_argv, envp) < 0 ){ // exec another copy of myself with added param
+            	perror("execve failed\n" ); // notify upon failure
             }
         }
         else {
-
             printf("PARENT WAITING\n");
-            wait(NULL);
+            wait(NULL); // wait for child process to finish
             printf("PARENT PROCESS TERMINATING\n");
         }
     }
-    else if ((argc > 1)){
+    else if ((argc > 1)){ // if params passed, run as child
         printf("CHILD PROCESS STARTED AND LISTENING\n");
-        
-        
-                
         address.sin_family = AF_INET;
         address.sin_addr.s_addr = INADDR_ANY;
         address.sin_port = htons( PORT );
         
-        server_fd = 2; 
-        
-        
+        server_fd = 2; // previously made duplicate
+	    
         // Forcefully attaching socket to the port 80
         if (bind(server_fd, (struct sockaddr *)&address,
                                     sizeof(address))<0)
