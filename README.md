@@ -1,3 +1,3 @@
-#teammembers
-Daniel Kim(014641497)
-Jerrt Quan
+# Team Members
+Daniel Kim (014641497)
+Jerry Quan (014560130)
